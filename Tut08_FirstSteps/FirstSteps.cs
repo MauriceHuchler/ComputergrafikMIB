@@ -16,11 +16,57 @@ namespace Fusee.Tutorial.Core
 {
     public class FirstSteps : RenderCanvas
     {
+        private TransformComponent _cubeTransform;
+        private TransformComponent _cubeTransform2;
+        private float _camAngle = 0;
+        private SceneContainer _scene;
+        private SceneRenderer _sceneRenderer;
         // Init is called on startup. 
         public override void Init()
         {
             // Set the clear color for the backbuffer to light green (intensities in R, G, B, A).
             RC.ClearColor = new float4(0.7f, 1.0f, 0.5f, 1.0f);
+
+            //Create a scene with a cube
+            // The three components: one XFrom, one Shade the Mesh
+            _cubeTransform = new TransformComponent {Scale = new float3(1,1,1), Translation = new float3(0,0,0)};
+            var cubeShader = new ShaderEffectComponent
+            {
+                Effect = SimpleMeshes.MakeShaderEffect(new float3(0,1,1), new float3(1,1,1), 4)
+            };
+            var cubeMesh = SimpleMeshes.CreateCuboid(new float3(10,10,10));
+
+
+            var cubeNode = new SceneNodeContainer();
+            cubeNode.Components = new List<SceneComponentContainer>();
+            cubeNode.Components.Add(_cubeTransform);
+            cubeNode.Components.Add(cubeShader);
+            cubeNode.Components.Add(cubeMesh);
+
+            //cube 2
+
+            _cubeTransform2 = new TransformComponent {Scale = new float3(1,1,1), Translation = new float3(0,0,-10)};
+            var cubeShader2 = new ShaderEffectComponent
+            {
+                Effect = SimpleMeshes.MakeShaderEffect(new float3(1,0,0), new float3(1,1,1), 4)
+            };
+            var cubeMesh2 = SimpleMeshes.CreateCuboid(new float3(10,10,10));
+
+            var cubeNode2 = new SceneNodeContainer();
+            cubeNode2.Components = new List<SceneComponentContainer>();
+            cubeNode2.Components.Add(_cubeTransform2);
+            cubeNode2.Components.Add(cubeShader2);
+            cubeNode2.Components.Add(cubeMesh);
+
+
+            //scene load
+            _scene = new SceneContainer();
+            _scene.Children = new List<SceneNodeContainer>();
+            _scene.Children.Add(cubeNode);
+            _scene.Children.Add(cubeNode2);
+
+            _sceneRenderer = new SceneRenderer(_scene);
+
         }
 
         // RenderAFrame is called once a frame
@@ -28,6 +74,21 @@ namespace Fusee.Tutorial.Core
         {
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
+
+            //animate the camera
+            _camAngle = _camAngle + 90.0f * M.Pi/180.0f * DeltaTime;
+            
+            //setup the camera
+            RC.View = float4x4.CreateTranslation(0,0,50) * float4x4.CreateRotationY(_camAngle);
+
+            //animate the cube1
+            _cubeTransform.Translation = new float3(0,5* M.Sin(3*TimeSinceStart), 0);
+
+            //animate cube2
+
+            _cubeTransform2.Scale = new float3(0,0.02f*M.Sin(3*TimeSinceStart),0);
+
+            _sceneRenderer.Render(RC);
 
 
             // Swap buffers: Show the contents of the backbuffer (containing the currently rendered frame) on the front buffer.
