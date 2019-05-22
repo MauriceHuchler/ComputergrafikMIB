@@ -16,6 +16,7 @@ namespace Fusee.Tutorial.Core
 {
     public class FirstSteps : RenderCanvas
     {
+        private ShaderEffectComponent cubeShader2;
         private TransformComponent _cubeTransform;
         private TransformComponent _cubeTransform2;
         private float _camAngle = 0;
@@ -25,7 +26,7 @@ namespace Fusee.Tutorial.Core
         public override void Init()
         {
             // Set the clear color for the backbuffer to light green (intensities in R, G, B, A).
-            RC.ClearColor = new float4(0.7f, 1.0f, 0.5f, 1.0f);
+            RC.ClearColor = new float4(0.5f, 0.5f, 0.5f, 1.0f);
 
             //Create a scene with a cube
             // The three components: one XFrom, one Shade the Mesh
@@ -45,10 +46,10 @@ namespace Fusee.Tutorial.Core
 
             //cube 2
 
-            _cubeTransform2 = new TransformComponent {Scale = new float3(1,1,1), Translation = new float3(0,0,-10)};
-            var cubeShader2 = new ShaderEffectComponent
+            _cubeTransform2 = new TransformComponent {Scale = new float3(1,1,1), Translation = new float3(0,0,-20)};
+             cubeShader2 = new ShaderEffectComponent
             {
-                Effect = SimpleMeshes.MakeShaderEffect(new float3(1,0,0), new float3(1,1,1), 4)
+                Effect = SimpleMeshes.MakeShaderEffect(new float3(1,0,0.4f), new float3(1,1,1), 4)
             };
             var cubeMesh2 = SimpleMeshes.CreateCuboid(new float3(10,10,10));
 
@@ -76,17 +77,20 @@ namespace Fusee.Tutorial.Core
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
             //animate the camera
-            _camAngle = _camAngle + 90.0f * M.Pi/180.0f * DeltaTime;
+            _camAngle = _camAngle + 50.0f * M.Pi/180.0f * DeltaTime;
             
             //setup the camera
             RC.View = float4x4.CreateTranslation(0,0,50) * float4x4.CreateRotationY(_camAngle);
 
             //animate the cube1
-            _cubeTransform.Translation = new float3(0,5* M.Sin(3*TimeSinceStart), 0);
+            _cubeTransform.Translation = new float3(0,5*M.Sin(3*TimeSinceStart), -1*5*M.Sin(3*TimeSinceStart));
 
             //animate cube2
 
-            _cubeTransform2.Scale = new float3(0,0.02f*M.Sin(3*TimeSinceStart),0);
+           _cubeTransform2.Scale = _cubeTransform2.Scale + new float3(0,0.01f*M.Sin(TimeSinceStart),0);
+           _cubeTransform2.Rotation = _cubeTransform2.Rotation + new float3(0,0,0.05f);
+           //color
+           cubeShader2.Effect.SetEffectParam("DiffuseColor", new float3(0,M.Sin(3*TimeSinceStart),0));
 
             _sceneRenderer.Render(RC);
 
