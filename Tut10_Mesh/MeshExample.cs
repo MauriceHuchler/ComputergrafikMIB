@@ -49,7 +49,7 @@ namespace Fusee.Tutorial.Core
                             },
 
                             // MESH COMPONENT
-                            SimpleMeshes.CreateCylinder(new float3(5, 10, 8))
+                            SimpleMeshes.CreateCylinder(5, 10, 8)
                         }
                     },
                 }
