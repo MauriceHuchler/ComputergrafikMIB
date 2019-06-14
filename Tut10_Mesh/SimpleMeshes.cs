@@ -5,8 +5,6 @@ using System.Text;
 using Fusee.Engine.Core;
 using Fusee.Math.Core;
 using Fusee.Serialization;
-//TEEEEEEEEEEEEEEEEST
-//TEEEEEEEEEEEEEEEEST
 
 
 namespace Fusee.Tutorial.Core
@@ -178,7 +176,88 @@ namespace Fusee.Tutorial.Core
 
         public static Mesh CreateCylinder(float radius, float height, int segments)
         {
-            return CreateConeFrustum(radius, radius, height, segments);
+             float3[] verts = new float3[4 * segments + 2];    
+            float3[] norms = new float3[4 * segments + 2];    
+            ushort[] tris  = new ushort[12 * segments];
+
+            float delta = 2 * M.Pi / segments;
+
+            verts[4*segments] = float3.Zero;
+            norms[4*segments] = float3.UnitY * (-1);
+
+            verts[0] = new float3(radius, 0, 0);
+            norms[0] = float3.UnitY * (-1);
+
+            verts[1] = new float3(radius, 0, 0);
+            norms[1] = float3.UnitX;
+
+            verts[2] = new float3(radius, height, 0);
+            norms[2] = float3.UnitY;
+
+            verts[3] = new float3(radius, height, 0);
+            norms[3] = float3.UnitX;
+
+            verts[4*segments+1] = new float3(0, height, 0);
+            norms[4*segments+1] = float3.UnitY;
+            
+            for (int i = 1; i < segments; i++)
+            {
+                    verts[4*i] = new float3(radius * M.Cos(i * delta), 0, radius * M.Sin(i * delta));
+                    norms[4*i] = float3.UnitY * (-1);
+                    
+                    verts[4*i+1] = new float3(radius * M.Cos(i * delta), 0, radius * M.Sin(i * delta));
+                    norms[4*i+1] = new float3(M.Cos(i * delta), 0, M.Sin(i*delta));
+
+                    verts[4*i+2] = new float3(radius * M.Cos(i * delta), height, radius * M.Sin(i * delta));
+                    norms[4*i+2] = float3.UnitY;
+                    
+                    verts[4*i+3] = new float3(radius * M.Cos(i * delta), height, radius * M.Sin(i * delta));
+                    norms[4*i+3] = new float3(M.Cos(i * delta), 0, M.Sin(i*delta));
+                    
+                    tris[12*i - 1] = (ushort) (4 * segments);  
+                    tris[12*i - 2] = (ushort) (4 * i);      
+                    tris[12*i - 3] = (ushort) (4 * (i - 1));      
+
+                    tris[12*i - 4] = (ushort) (4 * (i-1) + 2);     
+                    tris[12*i - 5] = (ushort) (4 * i + 2);      
+                    tris[12*i - 6] = (ushort) (4 * i + 1);     
+
+                    tris[12*i - 7] = (ushort) (4 * (i-1) + 2);     
+                    tris[12*i - 8] = (ushort) (4 * i + 1);      
+                    tris[12*i - 9] = (ushort) (4 * (i-1) + 1);     
+
+                    //Hier ist noch was falsch
+                    tris[12*i - 10] = (ushort) (4 * segments + 1);   
+                    tris[12*i - 11] = (ushort) (4 * (i-1) + 2);    
+                    tris[12*i - 12] = (ushort) (4 * i + 2); 
+                             
+            }
+
+            tris[12*segments - 1] = (ushort) (4 * segments); 
+            tris[12*segments - 2] = (ushort) 0;        
+            tris[12*segments - 3] = (ushort) (4 * segments -4);
+
+            tris[12*segments - 4] = (ushort) 3; 
+            tris[12*segments - 5] = (ushort) 1;        
+            tris[12*segments - 6] = (ushort) (4 * segments - 1);
+
+            //Hier ist noch was falsch
+            tris[12*segments - 7] = (ushort) (4 * segments - 2); 
+            tris[12*segments - 8] = (ushort) 1;        
+            tris[12*segments - 9] = (ushort) (4 * segments - 1);
+
+            tris[12*segments - 10] = (ushort) (4 * segments + 1); 
+            tris[12*segments - 11] = (ushort) 2;        
+            tris[12*segments - 12] = (ushort) ((4 * segments)-2);
+
+
+            return new Mesh
+            {
+                Vertices = verts,
+                Normals = norms,
+                Triangles = tris, 
+            };
+            
         }
 
         public static Mesh CreateCone(float radius, float height, int segments)
