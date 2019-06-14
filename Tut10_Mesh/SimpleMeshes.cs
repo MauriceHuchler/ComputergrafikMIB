@@ -226,7 +226,7 @@ namespace Fusee.Tutorial.Core
                     tris[12*i - 8] = (ushort) (4 * i + 1);      
                     tris[12*i - 9] = (ushort) (4 * (i-1) + 1);     
 
-                    //Hier ist noch was falsch
+                    //Hier irgendwo etwas falsch, was zur falschen Darstellung führt
                     tris[12*i - 10] = (ushort) (4 * segments + 1);   
                     tris[12*i - 11] = (ushort) (4 * (i-1) + 2);    
                     tris[12*i - 12] = (ushort) (4 * i + 2); 
@@ -241,7 +241,7 @@ namespace Fusee.Tutorial.Core
             tris[12*segments - 5] = (ushort) 1;        
             tris[12*segments - 6] = (ushort) (4 * segments - 1);
 
-            //Hier ist noch was falsch
+            //Hier auch 
             tris[12*segments - 7] = (ushort) (4 * segments - 2); 
             tris[12*segments - 8] = (ushort) 1;        
             tris[12*segments - 9] = (ushort) (4 * segments - 1);
