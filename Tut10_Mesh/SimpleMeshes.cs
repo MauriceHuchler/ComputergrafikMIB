@@ -176,86 +176,107 @@ namespace Fusee.Tutorial.Core
 
         public static Mesh CreateCylinder(float radius, float height, int segments)
         {
-             float3[] verts = new float3[4 * segments + 2];    
-            float3[] norms = new float3[4 * segments + 2];    
-            ushort[] tris  = new ushort[12 * segments];
+            
+            float3[] verts = new float3[4*segments+2]; // ein Vertices mehr für Mittelpunkt
+            float3[] norms = new float3[4*segments+2]; // Für jeden Vertices eine Normale
+            ushort[] tris = new ushort[12*segments]; // ein Dreieck pro Segment. ein Dreieck besitzt 3 Punkt pro Segment
 
-            float delta = 2 * M.Pi / segments;
+            float delta = 2*M.Pi / segments;
 
-            verts[4*segments] = float3.Zero;
-            norms[4*segments] = float3.UnitY * (-1);
+            //First and Last point in the Center
+            //top
+            verts[4*segments] = new float3(0,height*-0.5f,0);
+            norms[4*segments] = float3.UnitY *(-1);
 
-            verts[0] = new float3(radius, 0, 0);
-            norms[0] = float3.UnitY * (-1);
+            verts[0] = new float3(radius,height*-0.5f,0);
+            norms[0] = float3.UnitY*(-1);
 
-            verts[1] = new float3(radius, 0, 0);
+            verts[1] = new float3(radius,height*-0.5f,0);
             norms[1] = float3.UnitX;
 
-            verts[2] = new float3(radius, height, 0);
+            verts[2] = new float3(radius,height*0.5f,0);
             norms[2] = float3.UnitY;
 
-            verts[3] = new float3(radius, height, 0);
+            verts[3] = new float3(radius,height*0.5f,0);
             norms[3] = float3.UnitX;
 
-            verts[4*segments+1] = new float3(0, height, 0);
+            verts[4*segments+1] = new float3(0,height*0.5f,0);
             norms[4*segments+1] = float3.UnitY;
-            
+
+          
+
             for (int i = 1; i < segments; i++)
             {
-                    verts[4*i] = new float3(radius * M.Cos(i * delta), 0, radius * M.Sin(i * delta));
-                    norms[4*i] = float3.UnitY * (-1);
-                    
-                    verts[4*i+1] = new float3(radius * M.Cos(i * delta), 0, radius * M.Sin(i * delta));
-                    norms[4*i+1] = new float3(M.Cos(i * delta), 0, M.Sin(i*delta));
+                //top
+                verts[4*i] = new float3(radius * M.Cos(i*delta), height*-0.5f, radius * M.Sin(i*delta));
+                norms[4*i] = float3.UnitY *(-1);
 
-                    verts[4*i+2] = new float3(radius * M.Cos(i * delta), height, radius * M.Sin(i * delta));
-                    norms[4*i+2] = float3.UnitY;
-                    
-                    verts[4*i+3] = new float3(radius * M.Cos(i * delta), height, radius * M.Sin(i * delta));
-                    norms[4*i+3] = new float3(M.Cos(i * delta), 0, M.Sin(i*delta));
-                    
-                    tris[12*i - 1] = (ushort) (4 * segments);  
-                    tris[12*i - 2] = (ushort) (4 * i);      
-                    tris[12*i - 3] = (ushort) (4 * (i - 1));      
 
-                    tris[12*i - 4] = (ushort) (4 * (i-1) + 2);     
-                    tris[12*i - 5] = (ushort) (4 * i + 2);      
-                    tris[12*i - 6] = (ushort) (4 * i + 1);     
+                //top corner
+                verts[4*i+1] = new float3(radius * M.Cos(i*delta), height*-0.5f, radius * M.Sin(i*delta));
+                norms[4*i+1] = new float3(M.Cos(i*delta), 0, M.Sin(i*delta));
 
-                    tris[12*i - 7] = (ushort) (4 * (i-1) + 2);     
-                    tris[12*i - 8] = (ushort) (4 * i + 1);      
-                    tris[12*i - 9] = (ushort) (4 * (i-1) + 1);     
+                //bottom
+                verts[4*i+2] = new float3(radius * M.Cos(i*delta), height*0.5f, radius * M.Sin(i*delta));
+                norms[4*i+2] = float3.UnitY ;
 
-                    //Hier irgendwo etwas falsch, was zur falschen Darstellung führt
-                    tris[12*i - 10] = (ushort) (4 * segments + 1);   
-                    tris[12*i - 11] = (ushort) (4 * (i-1) + 2);    
-                    tris[12*i - 12] = (ushort) (4 * i + 2); 
-                             
+                
+                //bottom corner
+                verts[4*i+3] = new float3(radius * M.Cos(i*delta), height*0.5f, radius * M.Sin(i*delta));
+                norms[4*i+3] = new float3(M.Cos(i*delta), 0, M.Sin(i*delta));
+
+
+
+
+                //Dreiecke bauen top
+                tris[12*i-1] = (ushort) (4*segments); // centerpoint
+                tris[12*i-2] = (ushort) (4*i);       //current point
+                tris[12*i-3] = (ushort) (4*(i-1));   // previous point
+
+                //top corner
+                tris[12*i - 4] = (ushort) (4 * (i-1) + 1);     
+                tris[12*i - 5] = (ushort) (4 * i + 3);      
+                tris[12*i - 6] = (ushort) (4 * i + 1);     
+ 
+
+                //bottom
+                tris[12*i - 7] = (ushort) (4 * i + 3);     
+                tris[12*i - 8] = (ushort) (4 * (i-1) + 1);      
+                tris[12*i - 9] = (ushort) (4 * (i-1) + 3); 
+                
+
+                //bottom corner
+                tris[12*i - 10] = (ushort) (4 * segments + 1);   
+                tris[12*i - 11] = (ushort) (4 * i + 2);    
+                tris[12*i - 12] = (ushort) (4 * (i-1) + 2);
+                
             }
 
-            tris[12*segments - 1] = (ushort) (4 * segments); 
-            tris[12*segments - 2] = (ushort) 0;        
-            tris[12*segments - 3] = (ushort) (4 * segments -4);
+            // last Tris of top
+            tris[12* segments -1] = (ushort)(4*segments);       // center
+            tris[12* segments -2] = (ushort)0;              //wrap around    
+            tris[12* segments -3] = (ushort)(4*segments -4); //last segment point
 
             tris[12*segments - 4] = (ushort) 3; 
             tris[12*segments - 5] = (ushort) 1;        
             tris[12*segments - 6] = (ushort) (4 * segments - 1);
 
-            //Hier auch 
-            tris[12*segments - 7] = (ushort) (4 * segments - 2); 
-            tris[12*segments - 8] = (ushort) 1;        
+           
+            tris[12*segments - 7] = (ushort) 1; 
+            tris[12*segments - 8] = (ushort) (4 * segments - 3);       
             tris[12*segments - 9] = (ushort) (4 * segments - 1);
 
-            tris[12*segments - 10] = (ushort) (4 * segments + 1); 
-            tris[12*segments - 11] = (ushort) 2;        
-            tris[12*segments - 12] = (ushort) ((4 * segments)-2);
+            tris[12*segments - 10] = (ushort) (4 * segments + 1);   
+            tris[12*segments - 11] = (ushort) 2;    
+            tris[12*segments - 12] = (ushort) (4 * (segments-1) + 2);
 
 
             return new Mesh
             {
                 Vertices = verts,
                 Normals = norms,
-                Triangles = tris, 
+                Triangles = tris,
+
             };
             
         }
