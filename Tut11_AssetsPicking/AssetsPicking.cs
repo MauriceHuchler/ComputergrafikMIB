@@ -18,7 +18,16 @@ namespace Fusee.Tutorial.Core
     {
         private SceneContainer _scene;
         private SceneRenderer _sceneRenderer;
+        private ScenePicker _scenePicker;
         private TransformComponent _baseTransform;
+        // Transform vom Panzer
+        private TransformComponent _towerTransform;
+
+        //
+        private PickResult _currentPick;
+        private float3 _oldColor;
+
+        
 
         SceneContainer CreateScene()
         {
@@ -60,25 +69,72 @@ namespace Fusee.Tutorial.Core
         // Init is called on startup. 
         public override void Init()
         {
+
+           
             // Set the clear color for the backbuffer to white (100% intensity in all color channels R, G, B, A).
             RC.ClearColor = new float4(0.8f, 0.9f, 0.7f, 1);
 
-            _scene = CreateScene();
+            _scene = AssetStorage.Get<SceneContainer>("panzer.fus");
+            _towerTransform = _scene.Children.FindNodes(node => node.Name == "Turm")?.FirstOrDefault()?.GetTransform();
+            
 
             // Create a scene renderer holding the scene above
             _sceneRenderer = new SceneRenderer(_scene);
+
+            //picker
+            _scenePicker = new ScenePicker(_scene);
         }
 
         // RenderAFrame is called once a frame
         public override void RenderAFrame()
         {
-            _baseTransform.Rotation = new float3(0, M.MinAngle(TimeSinceStart), 0);
+            //_baseTransform.Rotation = new float3(0, M.MinAngle(TimeSinceStart), 0);
+
+            //tower kontrolle
+            
+
+            _towerTransform.Rotation = new float3(0,M.MinAngle(TimeSinceStart),0);
+            
 
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
+
+
             // Setup the camera 
-            RC.View = float4x4.CreateTranslation(0, 0, 40) * float4x4.CreateRotationX(-(float) Atan(15.0 / 40.0));
+            RC.View = float4x4.CreateTranslation(0, 0, 20) * float4x4.CreateRotationX(-(float) Atan(15.0 / 40.0));
+
+             if (Mouse.LeftButton)
+            {
+                float2 pickPosClip = Mouse.Position * new float2(2.0f / Width, -2.0f / Height) + new float2(-1, 1);
+                _scenePicker.View = RC.View;
+                _scenePicker.Projection = RC.Projection;
+
+                List<PickResult> pickResults = _scenePicker.Pick(pickPosClip).ToList();
+                PickResult newPick = null;
+                if (pickResults.Count > 0)
+                {
+                    pickResults.Sort((a, b) => Sign(a.ClipPos.z - b.ClipPos.z));
+                    newPick = pickResults[0];
+                }
+                   
+                if (newPick?.Node != _currentPick?.Node)
+                {
+                         if (_currentPick != null)
+                        {
+                                
+                            ShaderEffectComponent shaderEffectComponent = _currentPick.Node.GetComponent<ShaderEffectComponent>();
+                            shaderEffectComponent.Effect.SetEffectParam("DiffuseColor", _oldColor);
+                        }
+                        if (newPick != null)
+                        {
+                                ShaderEffectComponent shaderEffectComponent = newPick.Node.GetComponent<ShaderEffectComponent>();
+                                _oldColor = (float3)shaderEffectComponent.Effect.GetEffectParam("DiffuseColor");
+                                shaderEffectComponent.Effect.SetEffectParam("DiffuseColor", new float3(1, 0.4f, 0.4f));
+                        }
+                        _currentPick = newPick;
+                }
+            }
 
             // Render the scene on the current render context
             _sceneRenderer.Render(RC);
