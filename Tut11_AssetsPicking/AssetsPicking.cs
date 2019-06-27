@@ -23,6 +23,20 @@ namespace Fusee.Tutorial.Core
         // Transform vom Panzer
         private TransformComponent _towerTransform;
 
+        private TransformComponent _HRTransform;
+        private TransformComponent _HLTransform;
+
+        private TransformComponent _VRTransform;
+
+        private TransformComponent _VLTransform;
+
+        private TransformComponent _RumpfTransform;
+
+        private Boolean canTurn = false;
+        private Boolean gasGebenHR =false;
+        private Boolean gasGebenHL =false;
+        private Boolean allrad = false;
+
         //
         private PickResult _currentPick;
         private float3 _oldColor;
@@ -76,6 +90,11 @@ namespace Fusee.Tutorial.Core
 
             _scene = AssetStorage.Get<SceneContainer>("panzer.fus");
             _towerTransform = _scene.Children.FindNodes(node => node.Name == "Turm")?.FirstOrDefault()?.GetTransform();
+            _HRTransform = _scene.Children.FindNodes(node => node.Name == "Rad-hinten-rechts")?.FirstOrDefault()?.GetTransform();
+            _HLTransform = _scene.Children.FindNodes(node => node.Name == "Rad-hinten-links")?.FirstOrDefault()?.GetTransform();
+            _VRTransform = _scene.Children.FindNodes(node => node.Name == "Rad-vorne-rechts")?.FirstOrDefault()?.GetTransform();
+            _VLTransform = _scene.Children.FindNodes(node => node.Name == "Rad-vorne-Links")?.FirstOrDefault()?.GetTransform();
+             _RumpfTransform = _scene.Children.FindNodes(node => node.Name == "Rumpf")?.FirstOrDefault()?.GetTransform();
             
 
             // Create a scene renderer holding the scene above
@@ -93,7 +112,7 @@ namespace Fusee.Tutorial.Core
             //tower kontrolle
             
 
-            _towerTransform.Rotation = new float3(0,M.MinAngle(TimeSinceStart),0);
+           // _towerTransform.Rotation = new float3(0,M.MinAngle(TimeSinceStart),0);
             
 
             // Clear the backbuffer
@@ -104,12 +123,11 @@ namespace Fusee.Tutorial.Core
             // Setup the camera 
             RC.View = float4x4.CreateTranslation(0, 0, 20) * float4x4.CreateRotationX(-(float) Atan(15.0 / 40.0));
 
-             if (Mouse.LeftButton)
+        if (Mouse.LeftButton)
             {
                 float2 pickPosClip = Mouse.Position * new float2(2.0f / Width, -2.0f / Height) + new float2(-1, 1);
                 _scenePicker.View = RC.View;
                 _scenePicker.Projection = RC.Projection;
-
                 List<PickResult> pickResults = _scenePicker.Pick(pickPosClip).ToList();
                 PickResult newPick = null;
                 if (pickResults.Count > 0)
@@ -117,24 +135,113 @@ namespace Fusee.Tutorial.Core
                     pickResults.Sort((a, b) => Sign(a.ClipPos.z - b.ClipPos.z));
                     newPick = pickResults[0];
                 }
-                   
+
+                // Turm nur drehen wenn angeklickt
+                 if(pickResults.Count>0 && pickResults[0].Node.Name == "Turm" && _currentPick != null)
+                {  
+                    canTurn =true;
+                }
+                else
+                {
+                    canTurn = false;
+                }
+
+                //Räder drehen 
+                if(pickResults.Count>0 && _currentPick != null && pickResults[0].Node.Name == "Rad-hinten-rechts")
+                {
+                    gasGebenHR = true;
+                }
+                else
+                {
+                    gasGebenHR = false;
+                }
+
+                 if(pickResults.Count>0 && _currentPick != null && pickResults[0].Node.Name == "Rad-hinten-links")
+                {
+                    gasGebenHL = true;
+                }
+                else
+                {
+                    gasGebenHL = false;
+                }
+
+                if(pickResults.Count>0 && _currentPick != null && pickResults[0].Node.Name == "Rumpf")
+                {
+                    allrad = true;
+                }
+                else
+                {
+                    allrad = false;
+                }
+
+        
                 if (newPick?.Node != _currentPick?.Node)
                 {
-                         if (_currentPick != null)
-                        {
-                                
-                            ShaderEffectComponent shaderEffectComponent = _currentPick.Node.GetComponent<ShaderEffectComponent>();
-                            shaderEffectComponent.Effect.SetEffectParam("DiffuseColor", _oldColor);
-                        }
-                        if (newPick != null)
-                        {
-                                ShaderEffectComponent shaderEffectComponent = newPick.Node.GetComponent<ShaderEffectComponent>();
-                                _oldColor = (float3)shaderEffectComponent.Effect.GetEffectParam("DiffuseColor");
-                                shaderEffectComponent.Effect.SetEffectParam("DiffuseColor", new float3(1, 0.4f, 0.4f));
-                        }
-                        _currentPick = newPick;
+                    if (_currentPick != null)
+                    {
+                        ShaderEffectComponent shaderEffectComponent = _currentPick.Node.GetComponent<ShaderEffectComponent>();
+                        shaderEffectComponent.Effect.SetEffectParam("DiffuseColor", _oldColor);
+                    }
+                    if (newPick != null)
+                    {
+                        ShaderEffectComponent shaderEffectComponent = newPick.Node.GetComponent<ShaderEffectComponent>();
+                        _oldColor = (float3)shaderEffectComponent.Effect.GetEffectParam("DiffuseColor");
+                        shaderEffectComponent.Effect.SetEffectParam("DiffuseColor", new float3(0.5f, 0.1f, 0.4f));
+                    }
+                    _currentPick = newPick;
                 }
             }
+
+           if (canTurn == true)
+           {
+                  float towerRed = _towerTransform.Rotation.y;
+                    towerRed +=0.05f *Keyboard.ADAxis*(-1);
+                _towerTransform.Rotation = new float3(0,towerRed,0);
+           }
+
+           if(gasGebenHR == true)
+           {
+               float hintenRechts = _HRTransform.Rotation.x;
+               hintenRechts +=0.1f *Keyboard.WSAxis*(-1);
+               _HRTransform.Rotation = new float3(hintenRechts,0,0);
+
+           }
+
+            if(gasGebenHL == true)
+           {
+           
+               float hintenLinks =  _HLTransform.Rotation.x;
+               hintenLinks +=0.1f *Keyboard.WSAxis*(-1);
+               _HLTransform.Rotation = new float3(hintenLinks,0,0);
+           }
+            // bei Klick auf Rumpf
+           if(allrad == true)
+           {
+               //Hinten rechts
+                 float hintenRechts = _HRTransform.Rotation.x;
+               hintenRechts +=0.1f *Keyboard.WSAxis*(-1);
+               _HRTransform.Rotation = new float3(hintenRechts,0,0);
+
+
+                // Hinten links
+                 float hintenLinks =  _HLTransform.Rotation.x;
+               hintenLinks +=0.1f *Keyboard.WSAxis*(-1);
+               _HLTransform.Rotation = new float3(hintenLinks,0,0);
+
+               // Vorne rechts
+                float vorneRechts =  _VRTransform.Rotation.x;
+               vorneRechts +=0.1f *Keyboard.WSAxis*(-1);
+               _VRTransform.Rotation = new float3(vorneRechts,0,0);
+
+               //vorne links
+                    float vorneLinks =  _VLTransform.Rotation.x;
+               vorneLinks +=0.1f *Keyboard.WSAxis*(-1);
+               _VLTransform.Rotation = new float3(vorneLinks,0,0);
+
+           }
+            
+            
+               
 
             // Render the scene on the current render context
             _sceneRenderer.Render(RC);
